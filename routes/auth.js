@@ -1,0 +1,165 @@
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+
+const router = express.Router();
+
+// @route   POST /api/auth/signup
+// @desc    Register a new user
+// @access  Public
+router.post('/signup', async (req, res) => {
+  try {
+    const { firstName, lastName, email, username, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+    }
+
+    // Create new user
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      username,
+      password
+    });
+
+    await user.save();
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      message: 'User created successfully',
+      token,
+      user
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ message: errors[0] });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/auth/signin
+// @desc    Authenticate user and get token
+// @access  Public
+router.post('/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Login successful',
+      token,
+      user
+    });
+  } catch (error) {
+    console.error('Signin error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { firstName, lastName, email, username } = req.body;
+    const userId = req.user.userId;
+
+    // Check if email or username already exists (excluding current user)
+    const existingUser = await User.findOne({
+      $and: [
+        { _id: { $ne: userId } },
+        { $or: [{ email }, { username }] }
+      ]
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, email, username },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ message: errors[0] });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ user });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+module.exports = router;
