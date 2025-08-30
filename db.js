@@ -8,10 +8,8 @@ async function connectToDatabase() {
   }
 
   const db = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/healthwell', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     bufferCommands: false, // Disable mongoose buffering
-    serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+    serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
   });
 
