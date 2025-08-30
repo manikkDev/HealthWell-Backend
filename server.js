@@ -30,6 +30,12 @@ app.get('/', (req, res) => {
 connectToDatabase()
   .then(() => {
     console.log('MongoDB connected successfully');
+    // Only start the server if not in Vercel environment
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    }
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
