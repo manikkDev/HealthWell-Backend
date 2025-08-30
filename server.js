@@ -47,11 +47,7 @@ console.log('Root route accessed.');
 app.use('/api/auth', require('./routes/auth'));
 
 // If not in Vercel environment, start the server
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+
 
 
 
