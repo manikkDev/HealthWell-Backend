@@ -16,7 +16,7 @@ app.use((req, res, next) => {
 });
 
 // Root route
-app.all('*', (req, res) => {
+app.use((req, res) => {
   res.json({ message: 'HealthWell Backend API' });
 });
 

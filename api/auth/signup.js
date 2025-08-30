@@ -33,7 +33,7 @@ app.use(async (req, res, next) => {
 });
 
 // Handle all methods for this endpoint
-app.all('*', async (req, res) => {
+app.use(async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
