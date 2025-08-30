@@ -26,12 +26,10 @@ app.get('/', (req, res) => {
 });
 
 // Connect to MongoDB and then start the server
+// This connection will be reused across invocations in a serverless environment
 connectToDatabase()
   .then(() => {
     console.log('MongoDB connected successfully');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
