@@ -23,6 +23,11 @@ app.use((req, res, next) => {
 
 // Database connection middleware
 app.use(async (req, res, next) => {
+  // Skip database connection for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+  
   try {
     await connectToDatabase();
     next();
