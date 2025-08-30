@@ -78,8 +78,16 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
   console.log('Signin attempt received.');
   console.log('Request body:', req.body);
+  console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+  
   try {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      console.log('Missing email or password in request');
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
     console.log(`Attempting to sign in with email/username: ${email}`);
 
@@ -92,11 +100,21 @@ router.post('/signin', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    console.log('User found, checking password...');
+    
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       console.log('Password mismatch for user.');
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    console.log('Password verified, generating token...');
+    
+    // Check if JWT_SECRET exists
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not defined in environment variables');
+      return res.status(500).json({ message: 'Server configuration error' });
     }
 
     // Generate JWT token
@@ -106,6 +124,8 @@ router.post('/signin', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    console.log('Token generated successfully, sending response...');
+    
     res.json({
       message: 'Login successful',
       token,
