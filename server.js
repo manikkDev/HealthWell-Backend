@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Configure CORS to allow requests from your frontend's origin
 app.use(cors({
   origin: 'https://healthwell-frontend.vercel.app',
@@ -21,25 +27,31 @@ app.use(cors({
 connectToDatabase()
   .then(() => {
     console.log('MongoDB connected successfully');
-    // Routes
-    app.use('/api/auth', require('./routes/auth'));
-
-    // Only start the server if not in Vercel environment
-    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
-    }
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('VERCEL:', process.env.VERCEL);
+  })
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
+console.error('Error details:', err.message, err.stack);
     process.exit(1); // Exit process if DB connection fails
   });
 
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'HealthWell Backend API' });
+console.log('Root route accessed.');
 });
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+
+// If not in Vercel environment, start the server
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 
 

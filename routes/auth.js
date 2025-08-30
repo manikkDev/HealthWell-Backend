@@ -76,20 +76,26 @@ router.post('/signup', async (req, res) => {
 // @desc    Authenticate user and get token
 // @access  Public
 router.post('/signin', async (req, res) => {
+  console.log('Signin attempt received.');
+  console.log('Request body:', req.body);
   try {
     const { email, password } = req.body;
+
+    console.log(`Attempting to sign in with email/username: ${email}`);
 
     // Find user by email or username
     const user = await User.findOne({
       $or: [{ email }, { username: email }]
     });
     if (!user) {
+      console.log('User not found for provided credentials.');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log('Password mismatch for user.');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
@@ -101,6 +107,7 @@ router.post('/signin', async (req, res) => {
     );
 
     res.json({
+      console.log('Login successful for user:', user.username || user.email);
       message: 'Login successful',
       token,
       user
@@ -112,7 +119,14 @@ router.post('/signin', async (req, res) => {
       name: error.name,
       timestamp: new Date().toISOString()
     });
+    console.error('Full signin error object:', error);
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({ message: 'Server error during signin' });
+    console.log('Signin process completed with error.');
   }
 });
 
