@@ -17,19 +17,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-
-// Basic route
-app.get('/', (req, res) => {
-  res.json({ message: 'HealthWell Backend API' });
-});
-
-// Connect to MongoDB and then start the server
-// This connection will be reused across invocations in a serverless environment
+// Connect to MongoDB and then set up routes
 connectToDatabase()
   .then(() => {
     console.log('MongoDB connected successfully');
+    // Routes
+    app.use('/api/auth', require('./routes/auth'));
+
     // Only start the server if not in Vercel environment
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       app.listen(PORT, () => {
@@ -41,6 +35,13 @@ connectToDatabase()
     console.error('MongoDB connection error:', err);
     process.exit(1); // Exit process if DB connection fails
   });
+
+// Basic route
+app.get('/', (req, res) => {
+  res.json({ message: 'HealthWell Backend API' });
+});
+
+
 
 // Global unhandled exception handler
 process.on('uncaughtException', err => {
