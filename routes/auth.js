@@ -107,19 +107,12 @@ router.post('/signin', async (req, res) => {
     );
 
     res.json({
-      console.log('Login successful for user:', user.username || user.email);
       message: 'Login successful',
       token,
       user
     });
   } catch (error) {
     console.error('Signin error:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      timestamp: new Date().toISOString()
-    });
-    console.error('Full signin error object:', error);
       message: error.message,
       stack: error.stack,
       name: error.name,

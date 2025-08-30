@@ -30,7 +30,6 @@ connectToDatabase()
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('VERCEL:', process.env.VERCEL);
   })
-  })
   .catch(err => {
     console.error('MongoDB connection error:', err);
 console.error('Error details:', err.message, err.stack);
