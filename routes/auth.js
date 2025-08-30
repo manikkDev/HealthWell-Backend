@@ -50,12 +50,25 @@ router.post('/signup', async (req, res) => {
       user
     });
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('Signup error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    });
+    
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ message: errors[0] });
     }
-    res.status(500).json({ message: 'Server error' });
+    
+    if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({ message: `${field} already exists` });
+    }
+    
+    res.status(500).json({ message: 'Server error during signup' });
   }
 });
 
@@ -66,8 +79,10 @@ router.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email or username
+    const user = await User.findOne({
+      $or: [{ email }, { username: email }]
+    });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -91,8 +106,13 @@ router.post('/signin', async (req, res) => {
       user
     });
   } catch (error) {
-    console.error('Signin error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Signin error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ message: 'Server error during signin' });
   }
 });
 
