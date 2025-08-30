@@ -36,4 +36,10 @@ connectToDatabase()
     process.exit(1); // Exit process if DB connection fails
   });
 
+// Global unhandled exception handler
+process.on('uncaughtException', err => {
+  console.error('There was an uncaught error:', err);
+  process.exit(1); // mandatory (as per the Node.js docs)
+});
+
 module.exports = app;
