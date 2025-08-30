@@ -17,16 +17,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Connect to MongoDB and then start the server
-connectToDatabase()
-  .then(() => {
-    console.log('MongoDB connected successfully');
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit process if DB connection fails
-  });
-
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 
@@ -35,9 +25,17 @@ app.get('/', (req, res) => {
   res.json({ message: 'HealthWell Backend API' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Connect to MongoDB and then start the server
+connectToDatabase()
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit process if DB connection fails
+  });
 
 module.exports = app;
