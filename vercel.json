@@ -1,16 +1,22 @@
 {
- "version": 2,
- "builds": [
-  {
-   "src": "server.js",
-   "use": "@vercel/node",
-   "config": { "includeFiles": ["dist/**"] }
-  }
- ],
- "routes": [
-  {
-   "src": "/(.*)",
-   "dest": "server.js"
-  }
- ]
+  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/auth/signin",
+      "destination": "/api/auth/signin.js"
+    },
+    {
+      "source": "/api/auth/signup",
+      "destination": "/api/auth/signup.js"
+    },
+    {
+      "source": "/",
+      "destination": "/api/index.js"
+    }
+  ]
 }
